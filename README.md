@@ -23,6 +23,22 @@ Perl project (source + running instance)
 Verified Rust binary
 ```
 
+## Version Compatibility
+
+Perl 5 is the only target. Perl 6 (Raku) is a different language entirely.
+
+| Perl Version | Priority | Notes |
+|--------------|----------|-------|
+| 5.26 - 5.40 | **First** | Modern Perl 5. Current baseline. |
+| 5.16 - 5.24 | Second | Stable enterprise versions. Wide deployment. |
+| 5.10 - 5.14 | Third | say, given/when, smart match. Legacy boundary. |
+| 5.8 | Fourth | Pre-modern. Unicode support era. Still in production. |
+| 5.6 | Fifth | Ancient but found in telecom systems. |
+
+Older Perl is actually harder than newer Perl — not because of features, but because of coding style. Perl 5.6-era code tends to use extreme shortcuts, implicit variables ($\_), and dense regex. AI handles this better than humans because it doesn't need to "read" the syntax — it understands the behavior.
+
+Auto-detection: `perl-to-rust analyze` detects version from `use v5.xx`, module requirements, and syntax patterns.
+
 ## Key Challenges
 
 | Perl Feature | Conversion Strategy |
