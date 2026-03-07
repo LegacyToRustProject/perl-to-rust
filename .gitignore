@@ -13,3 +13,4 @@ DBI-*/
 # Output project build artifacts
 output/*/target/
 output/*/Cargo.lock
+output/
