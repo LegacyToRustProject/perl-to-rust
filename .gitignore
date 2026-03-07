@@ -9,3 +9,6 @@ CGI-*/
 DBI-*/
 # Build outputs
 output/*/target/
+
+output/
+test-projects/
