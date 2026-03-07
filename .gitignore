@@ -8,7 +8,8 @@ Getopt-Long-*/
 CGI-*/
 DBI-*/
 # Build outputs
-output/*/target/
 
-output/
-test-projects/
+
+# Output project build artifacts
+output/*/target/
+output/*/Cargo.lock

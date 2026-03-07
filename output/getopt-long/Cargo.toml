@@ -1,0 +1,19 @@
+[package]
+name = "getopt-long"
+version = "0.1.0"
+edition = "2021"
+description = "Converted from Perl Getopt::Long-2.57"
+
+[[bin]]
+name = "getopt-sample"
+path = "src/main.rs"
+
+[lib]
+name = "getopt_long"
+path = "src/lib.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"
+
+[workspace]
