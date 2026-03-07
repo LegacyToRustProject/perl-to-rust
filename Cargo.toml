@@ -1,0 +1,32 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/perl-parser",
+    "crates/rust-generator",
+    "crates/verifier",
+    "crates/cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+perl-parser = { path = "crates/perl-parser" }
+rust-generator = { path = "crates/rust-generator" }
+verifier = { path = "crates/verifier" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+anyhow = "1"
+thiserror = "2"
+regex = "1"
+fancy-regex = "0.14"
+toml = "0.8"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4", features = ["derive", "env"] }
+reqwest = { version = "0.12", features = ["json"] }
+async-trait = "0.1"
+tempfile = "3"

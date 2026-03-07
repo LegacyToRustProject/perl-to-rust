@@ -1,0 +1,1 @@
+/home/ubuntu/perl-to-rust/target/debug/libperl_parser.rlib: /home/ubuntu/perl-to-rust/crates/perl-parser/src/analyzer.rs /home/ubuntu/perl-to-rust/crates/perl-parser/src/cpan.rs /home/ubuntu/perl-to-rust/crates/perl-parser/src/lib.rs /home/ubuntu/perl-to-rust/crates/perl-parser/src/regex.rs /home/ubuntu/perl-to-rust/crates/perl-parser/src/types.rs
