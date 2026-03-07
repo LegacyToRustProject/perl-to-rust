@@ -1,0 +1,9 @@
+[package]
+name = "list-util"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "list-util"
+path = "src/main.rs"
+[workspace]
