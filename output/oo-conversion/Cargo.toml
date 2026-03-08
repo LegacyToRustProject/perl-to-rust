@@ -1,0 +1,13 @@
+[package]
+name = "oo-conversion"
+version = "0.1.0"
+edition = "2021"
+description = "Converted from Perl bless-based OOP (Animal/Dog class hierarchy)"
+
+[[bin]]
+name = "oo-conversion"
+path = "src/main.rs"
+
+[dependencies]
+
+[workspace]
