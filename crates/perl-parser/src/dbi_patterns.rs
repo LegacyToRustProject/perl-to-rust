@@ -42,27 +42,21 @@ pub fn all_patterns() -> Vec<DbiPattern> {
             name: "connect_mysql",
             perl_pattern: r#"DBI->connect("dbi:mysql:database=$db", $user, $pass)"#,
             rust_equivalent: r#"sqlx::MySqlPool::connect(&database_url).await?"#,
-            dependencies: &[
-                "sqlx = { version = \"0.8\", features = [\"mysql\", \"runtime-tokio\"] }",
-            ],
+            dependencies: &["sqlx = { version = \"0.8\", features = [\"mysql\", \"runtime-tokio\"] }"],
             category: DbiCategory::Connection,
         },
         DbiPattern {
             name: "connect_postgres",
             perl_pattern: r#"DBI->connect("dbi:Pg:dbname=$db;host=$host", $user, $pass)"#,
             rust_equivalent: r#"sqlx::PgPool::connect(&database_url).await?"#,
-            dependencies: &[
-                "sqlx = { version = \"0.8\", features = [\"postgres\", \"runtime-tokio\"] }",
-            ],
+            dependencies: &["sqlx = { version = \"0.8\", features = [\"postgres\", \"runtime-tokio\"] }"],
             category: DbiCategory::Connection,
         },
         DbiPattern {
             name: "connect_sqlite",
             perl_pattern: r#"DBI->connect("dbi:SQLite:dbname=$file")"#,
             rust_equivalent: r#"sqlx::SqlitePool::connect(&format!("sqlite:{}", file)).await?"#,
-            dependencies: &[
-                "sqlx = { version = \"0.8\", features = [\"sqlite\", \"runtime-tokio\"] }",
-            ],
+            dependencies: &["sqlx = { version = \"0.8\", features = [\"sqlite\", \"runtime-tokio\"] }"],
             category: DbiCategory::Connection,
         },
         DbiPattern {
@@ -83,6 +77,7 @@ pub fn all_patterns() -> Vec<DbiPattern> {
             dependencies: &[],
             category: DbiCategory::Connection,
         },
+
         // ── QUERY / PREPARE ──────────────────────────────────────────
         DbiPattern {
             name: "prepare",
@@ -96,7 +91,7 @@ pub fn all_patterns() -> Vec<DbiPattern> {
             name: "prepare_named",
             perl_pattern: r#"$dbh->prepare("SELECT * FROM users WHERE id = :id")"#,
             rust_equivalent: r#"sqlx::query("SELECT * FROM users WHERE id = $1")
-    .bind(id)"#, // PostgreSQL uses $1, MySQL uses ?
+    .bind(id)"#,  // PostgreSQL uses $1, MySQL uses ?
             dependencies: &[],
             category: DbiCategory::Query,
         },
@@ -138,6 +133,7 @@ pub fn all_patterns() -> Vec<DbiPattern> {
             dependencies: &[],
             category: DbiCategory::Execute,
         },
+
         // ── EXECUTE ───────────────────────────────────────────────────
         DbiPattern {
             name: "execute",
@@ -169,6 +165,7 @@ let id = result.last_insert_id();"#,
             dependencies: &[],
             category: DbiCategory::Execute,
         },
+
         // ── FETCH ─────────────────────────────────────────────────────
         DbiPattern {
             name: "fetchrow_hashref",
@@ -247,6 +244,7 @@ while let Some(row) = rows.try_next().await? {
             dependencies: &[],
             category: DbiCategory::Fetch,
         },
+
         // ── TRANSACTION ───────────────────────────────────────────────
         DbiPattern {
             name: "begin_work",
@@ -286,6 +284,7 @@ tx.commit().await?;
             dependencies: &[],
             category: DbiCategory::Transaction,
         },
+
         // ── METADATA ──────────────────────────────────────────────────
         DbiPattern {
             name: "column_names",
@@ -313,6 +312,7 @@ let tables: Vec<String> = sqlx::query_scalar("SHOW TABLES")
             dependencies: &[],
             category: DbiCategory::Utility,
         },
+
         // ── ERROR HANDLING ────────────────────────────────────────────
         DbiPattern {
             name: "errstr",
@@ -330,6 +330,7 @@ let tables: Vec<String> = sqlx::query_scalar("SHOW TABLES")
             dependencies: &[],
             category: DbiCategory::Error,
         },
+
         // ── STRUCT DERIVE ─────────────────────────────────────────────
         DbiPattern {
             name: "from_row_derive",
@@ -382,10 +383,7 @@ impl DbiDetector {
             connect_re: Regex::new(r#"DBI->connect\s*\("#).unwrap(),
             prepare_re: Regex::new(r#"\$\w+->prepare\s*\("#).unwrap(),
             execute_re: Regex::new(r#"\$\w+->execute\s*\("#).unwrap(),
-            fetch_re: Regex::new(
-                r#"\$\w+->fetch(?:row_(?:hashref|arrayref|array)|all_arrayref|all_hashref)\s*\("#,
-            )
-            .unwrap(),
+            fetch_re: Regex::new(r#"\$\w+->fetch(?:row_(?:hashref|arrayref|array)|all_arrayref|all_hashref)\s*\("#).unwrap(),
             do_re: Regex::new(r#"\$\w+->do\s*\("#).unwrap(),
             transaction_re: Regex::new(r#"\$\w+->(?:begin_work|commit|rollback)\s*\("#).unwrap(),
         }
@@ -456,7 +454,9 @@ pub fn dsn_to_database_url(dsn: &str, user: &str, pass: &str) -> Option<String> 
             _ => return None,
         };
 
-        let port_str = port.map(|p| format!(":{}", p)).unwrap_or_default();
+        let port_str = port
+            .map(|p| format!(":{}", p))
+            .unwrap_or_default();
 
         Some(format!(
             "{}://{}:{}@{}{}/{}",
@@ -495,14 +495,10 @@ mod tests {
     #[test]
     fn test_all_categories_represented() {
         let patterns = all_patterns();
-        let has_connection = patterns
-            .iter()
-            .any(|p| p.category == DbiCategory::Connection);
+        let has_connection = patterns.iter().any(|p| p.category == DbiCategory::Connection);
         let has_query = patterns.iter().any(|p| p.category == DbiCategory::Query);
         let has_fetch = patterns.iter().any(|p| p.category == DbiCategory::Fetch);
-        let has_transaction = patterns
-            .iter()
-            .any(|p| p.category == DbiCategory::Transaction);
+        let has_transaction = patterns.iter().any(|p| p.category == DbiCategory::Transaction);
         assert!(has_connection);
         assert!(has_query);
         assert!(has_fetch);
@@ -548,19 +544,16 @@ $dbh->commit();
 
     #[test]
     fn test_dsn_to_database_url_mysql() {
-        let url = dsn_to_database_url(
-            "dbi:mysql:database=mydb;host=localhost;port=3306",
-            "user",
-            "pass",
-        )
-        .unwrap();
+        let url =
+            dsn_to_database_url("dbi:mysql:database=mydb;host=localhost;port=3306", "user", "pass")
+                .unwrap();
         assert_eq!(url, "mysql://user:pass@localhost:3306/mydb");
     }
 
     #[test]
     fn test_dsn_to_database_url_postgres() {
-        let url =
-            dsn_to_database_url("dbi:Pg:dbname=mydb;host=db.example.com", "user", "pass").unwrap();
+        let url = dsn_to_database_url("dbi:Pg:dbname=mydb;host=db.example.com", "user", "pass")
+            .unwrap();
         assert_eq!(url, "postgres://user:pass@db.example.com/mydb");
     }
 
@@ -618,38 +611,21 @@ mod extra_tests {
 
     #[test]
     fn test_usage_summary_total() {
-        let s = DbiUsageSummary {
-            connects: 1,
-            prepares: 3,
-            executes: 3,
-            fetches: 2,
-            dos: 1,
-            transactions: 2,
-        };
+        let s = DbiUsageSummary { connects:1, prepares:3, executes:3, fetches:2, dos:1, transactions:2 };
         assert_eq!(s.total(), 12);
     }
 
     #[test]
     fn test_fetch_category_count() {
         let patterns = all_patterns();
-        let fetch_count = patterns
-            .iter()
-            .filter(|p| p.category == DbiCategory::Fetch)
-            .count();
-        assert!(
-            fetch_count >= 5,
-            "expected >=5 fetch patterns, got {}",
-            fetch_count
-        );
+        let fetch_count = patterns.iter().filter(|p| p.category == DbiCategory::Fetch).count();
+        assert!(fetch_count >= 5, "expected >=5 fetch patterns, got {}", fetch_count);
     }
 
     #[test]
     fn test_connection_category_count() {
         let patterns = all_patterns();
-        let conn_count = patterns
-            .iter()
-            .filter(|p| p.category == DbiCategory::Connection)
-            .count();
+        let conn_count = patterns.iter().filter(|p| p.category == DbiCategory::Connection).count();
         assert!(conn_count >= 3);
     }
 
