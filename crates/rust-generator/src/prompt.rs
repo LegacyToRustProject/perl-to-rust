@@ -27,10 +27,53 @@ pub fn system_prompt() -> String {
 
 - Simple patterns: use `regex` crate
 - Lookbehind, backreferences: use `fancy_regex` crate
-- Named captures: `(?<name>...)` → `(?P<name>...)`
+- Named captures: `(?<name>...)` → `(?P<name>...)` (already Rust-compatible)
 - `/g` modifier → `replace_all()` or `find_iter()`
 - `/e` modifier → manual closure-based replacement
 - `tr/a-z/A-Z/` → `.to_uppercase()` or char mapping
+
+## Iterator and Closure Rules (CRITICAL)
+
+**Closure parameter depth for slices** — common error source:
+When iterating over `&[T]`, `.iter()` yields `&T`. Use `|&x|` not `|&&x|`:
+
+  // WRONG: |&&x| causes E0308 mismatched types
+  nums.iter().any(|&&x| x > 1.0);
+  // CORRECT: &[f64].iter() yields &f64, pattern |&x| gives f64
+  nums.iter().any(|&x| x > 1.0);
+  // ALSO CORRECT: explicit deref
+  nums.iter().any(|x| *x > 1.0);
+
+Perl `grep { $_ > 0 } @list` → `list.iter().filter(|&x| *x > 0.0)`
+Perl `map { $_ * 2 } @list` → `list.iter().map(|&x| x * 2.0)` (Copy) or `.map(|x| x.clone())`
+
+**Numbered captures** `$1, $2`:
+  // Perl: if ($text =~ /^(\d+)-(\d+)$/) { print "$1 $2\n"; }
+  // Rust: if let Some(caps) = re.captures(text) { println!("{} {}", &caps[1], &caps[2]); }
+
+**Named captures** `$+{name}`:
+  // Perl: $+{level}
+  // Rust: &caps["level"]  (or caps.name("level").unwrap().as_str())
+
+## DBI → SQLx Conversion
+
+- `DBI->connect($dsn)` → `sqlx::MySqlPool::connect(&url).await?`
+- `$dbh->prepare($sql); $sth->execute($v)` → `sqlx::query($sql).bind(v).execute(&pool).await?`
+- `$sth->fetchrow_hashref()` → `query_as::<_, T>(sql).fetch_one(&pool).await?`
+- `$sth->fetchall_arrayref({})` → `query_as::<_, T>(sql).fetch_all(&pool).await?`
+- Transaction `begin_work/commit/rollback` → `pool.begin().await? / tx.commit().await?`
+- Use `#[derive(sqlx::FromRow)]` for structs mapped from `fetchrow_hashref`
+
+## CGI.pm → Axum Conversion
+
+- `my $q = CGI->new` → Axum extractors (no CGI object needed)
+- `$q->param('name')` → `Query<Params>` or `Form<Params>` extractor
+- `print $q->header('text/html'); print $body` → return `Html<String>`
+- `print $q->header('application/json')` → return `Json<T>`
+- `$q->header(-status => '404 ...')` → `(StatusCode::NOT_FOUND, body).into_response()`
+- `print $q->redirect($url)` → `Redirect::to(url)`
+- `if ($action eq 'x') { ... } elsif ($action eq 'y') { ... }` → `Router::new().route()`
+- Global DB handle `$dbh` → `State<Arc<AppState>>` extractor with connection pool
 
 ## OOP Conversion (bless-based)
 

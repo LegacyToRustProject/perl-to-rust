@@ -2,3 +2,15 @@
 *.swp
 *.swo
 .DS_Store
+# Downloaded OSS sources for testing
+Scalar-List-Utils-*/
+Getopt-Long-*/
+CGI-*/
+DBI-*/
+# Build outputs
+
+
+# Output project build artifacts
+output/*/target/
+output/*/Cargo.lock
+output/

@@ -81,3 +81,62 @@
 "Config::General" = "config"
 "Config::Tiny" = "config"
 "Config::IniFiles" = "config"
+
+# --- Added from OSS testing (2026-03-08) ---
+
+# Standard library / OS interface
+"Cwd" = "std::env::current_dir"
+"FindBin" = "std::env::current_exe"
+"Errno" = "std::io::ErrorKind"
+"Fcntl" = "std::fs::OpenOptions # nix crate for low-level flags"
+"POSIX::strftime" = "chrono::format"
+
+# IO
+"IO::File" = "std::fs::File"
+"IO::Handle" = "std::io::{Read, Write, BufRead}"
+"IO::Select" = "tokio::select! # or mio"
+"IO::String" = "std::io::Cursor"
+
+# Sub and symbol utilities
+"Sub::Util" = "# std::mem::transmute (use with care) / proc macros"
+"List::Util::XS" = "# Iterator methods (same as List::Util)"
+"Scalar::Util::blessed" = "# use trait objects or Any::downcast_ref"
+"Hash::Util" = "# std::collections::HashMap (lock_keys → not needed in Rust)"
+
+# Testing
+"Test::Fatal" = "# Result + #[should_panic]"
+"Test::Warn" = "# tracing-test crate"
+"Test::Output" = "# assert! with captured stdout"
+"Test::MockObject" = "# mockall crate"
+"Test::MockModule" = "# mockall crate"
+"Test::Pod" = "# rustdoc tests"
+
+# Math
+"Math::BigInt" = "num-bigint"
+"Math::BigFloat" = "rust_decimal / bigdecimal"
+"POSIX::floor" = "f64::floor"
+"POSIX::ceil" = "f64::ceil"
+"POSIX::fmod" = "f64::rem_euclid"
+
+# String / Text utilities
+"Text::Wrap" = "textwrap"
+"Text::Trim" = "str::trim"
+"String::Util" = "# str methods (trim, crunch whitespace)"
+"Lingua::EN::Inflect" = "inflector"
+"Unicode::Normalize" = "unicode-normalization"
+
+# Terminal / Formatting
+"Term::ANSIColor" = "colored / ansi_term"
+"Term::ReadLine" = "rustyline"
+"Term::ProgressBar" = "indicatif"
+
+# Serialization / Config
+"Data::MessagePack" = "rmp-serde"
+"Sereal" = "# serde + bincode"
+"XML::RSS" = "# rss crate / quick-xml"
+"HTML::Entities" = "html-escape"
+
+# Getopt variants
+"Getopt::Long::Parser" = "clap::Command (builder API)"
+"Getopt::Long::Descriptive" = "clap # with derive macro"
+"Pod::Usage" = "# clap help/version flags"
