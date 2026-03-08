@@ -77,12 +77,102 @@ Perl `map { $_ * 2 } @list` → `list.iter().map(|&x| x * 2.0)` (Copy) or `.map(
 
 ## OOP Conversion (bless-based)
 
-- `package Foo` → `struct Foo`
-- `bless { field => value }, $class` → `Foo { field: value }`
-- `sub new { ... }` → `fn new(...) -> Self`
-- Methods (first arg is `$self`) → `fn method(&self, ...)`
-- `@ISA` / `use parent` → trait implementation
-- Moose/Moo attributes → struct fields with builder pattern
+### Class → Struct mapping
+
+- `package Foo` → `struct Foo { ... }` in `mod foo` (snake_case module)
+- `bless { field => $val }, $class` → `Self { field: val }`
+- `sub new { my ($class, %args) = @_; bless { ... }, $class }` → `fn new(...) -> Self`
+- Private fields (`_foo`) → private struct fields (no `pub`)
+- `our $VERSION = '1.0'` → `pub const VERSION: &str = "1.0";`
+
+### Inheritance → Composition or Traits
+
+**Composition (preferred for concrete single inheritance):**
+```
+# Perl: package Dog; use parent 'Animal';
+pub struct Dog { animal: Animal, tricks: Vec<String> }  // embed parent
+impl Dog {
+    pub fn speak(&self) { self.animal.speak() }          // delegate
+}
+```
+
+**Traits (preferred for polymorphism):**
+```
+pub trait Speaks { fn name(&self) -> &str; fn speak(&self); }
+impl Speaks for Dog { ... }
+fn make_noise(a: &dyn Speaks) { a.speak(); }            // dynamic dispatch
+```
+
+### SUPER:: → direct call on embedded parent or explicit function
+
+- `$self->SUPER::new(%args)` → `Animal::new(name, sound, age)` (construct embedded)
+- `$self->SUPER::method()` → `self.animal.method()` (forward to embedded field)
+- No `super` keyword in Rust — call the parent struct's method explicitly
+
+### Methods
+
+| Perl | Rust |
+|------|------|
+| `sub m { my ($self) = @_ }` | `fn m(&self)` |
+| `sub m { my ($self, $x) = @_ }` | `fn m(&self, x: T)` |
+| `sub m { my ($class) = @_ }` | `fn m()` (associated fn, no `self`) |
+| Mutates `$self->{field}` | `fn m(&mut self)` |
+| `sub DESTROY { ... }` | `impl Drop for Foo { fn drop(&mut self) }` |
+
+### Read-write accessor → getter + setter
+
+```perl
+sub age { my ($self,$v) = @_; $self->{_age}=$v if @_>1; $self->{_age} }
+```
+→
+```rust
+pub fn age(&self) -> u32 { self.age }
+pub fn set_age(&mut self, v: u32) { self.age = v; }
+```
+
+### Moose/Moo attributes → struct fields
+
+```perl
+has name  => (is => 'ro', isa => 'Str',  required => 1);
+has count => (is => 'rw', isa => 'Int',  default  => 0);
+has tags  => (is => 'rw', isa => 'ArrayRef[Str]', default => sub { [] });
+```
+→
+```rust
+pub struct MyClass { pub name: String, pub count: i64, pub tags: Vec<String> }
+// ro fields: no setter; rw fields: pub + setter method
+```
+
+Perl type → Rust type:
+- `Str` → `String`, `Int` → `i64`, `Num`/`Float` → `f64`, `Bool` → `bool`
+- `ArrayRef` → `Vec<String>`, `ArrayRef[Int]` → `Vec<i64>`
+- `HashRef` → `HashMap<String, String>`, `Maybe[Str]` → `Option<String>`
+- `PositiveInt` → `u64`, custom class `Foo` → `Box<Foo>` or `Arc<Foo>`
+
+### Roles (Moose::Role / Role::Tiny) → Rust traits
+
+```perl
+package MyRole; use Moose::Role; requires 'name'; sub greet { ... }
+package Foo; with 'MyRole';
+```
+→
+```rust
+pub trait MyRole { fn name(&self) -> &str; fn greet(&self) { println!(...); } }
+impl MyRole for Foo { fn name(&self) -> &str { &self.name } }
+```
+
+### Operator overloading → std::ops traits
+
+- `use overload '""'` → `impl std::fmt::Display`
+- `use overload '+'` → `impl std::ops::Add`
+- `use overload '=='` → `impl PartialEq`
+- `use overload '<=>'` → `impl PartialOrd`
+
+### Introspection
+
+- `$obj->isa('Foo')` → compile-time trait bounds or `Any::downcast_ref`
+- `$obj->can('method')` → trait bounds guarantee method existence at compile time
+- `ref($obj)` → `std::any::type_name::<T>()` or match on enum variants
 
 ## Output Format
 
